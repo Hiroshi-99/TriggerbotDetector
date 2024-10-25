@@ -1,0 +1,4 @@
+name: triggerbotdetector
+version: '1.0-SNAPSHOT'
+main: org.katsuki.triggerbotdetector.Triggerbotdetector
+api-version: '1.20'

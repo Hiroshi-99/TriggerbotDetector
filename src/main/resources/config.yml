@@ -1,0 +1,9 @@
+# File: src/main/resources/config.yml
+settings:
+  sensitivity:
+    max_average_attack_interval: 150  # Maximum allowed average interval between attacks in milliseconds
+    min_attack_count: 5  # Minimum number of attacks before suspicion detection starts
+  actions:
+    warn_player: true  # Whether to warn the player if suspicious
+    kick_player: false  # Whether to kick the player if suspicious
+  enabled: true  # Whether the plugin should be active
