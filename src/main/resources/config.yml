@@ -1,8 +1,10 @@
-# File: src/main/resources/config.yml
+#Made with <3
 settings:
   sensitivity:
     max_average_attack_interval: 150  # Maximum allowed average interval between attacks in milliseconds
     min_attack_count: 5  # Minimum number of attacks before suspicion detection starts
+    max_std_deviation: 50.0  # Maximum allowed standard deviation of attack intervals
+    tolerance_percentage: 0.80  # Tolerance for consistently fast clicks (e.g., 80%)
   actions:
     warn_player: true  # Whether to warn the player if suspicious
     kick_player: false  # Whether to kick the player if suspicious

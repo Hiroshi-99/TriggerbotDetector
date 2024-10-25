@@ -11,15 +11,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class TriggerBotDetector extends JavaPlugin implements Listener {
 
     private final Map<UUID, PlayerStats> playerStats = new HashMap<>();
     private int maxAverageAttackInterval;
     private int minAttackCount;
+    private double maxStdDeviation;
+    private double tolerancePercentage;
     private boolean warnPlayer;
     private boolean kickPlayer;
     private boolean isEnabled;
@@ -42,6 +42,8 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         this.maxAverageAttackInterval = config.getInt("settings.sensitivity.max_average_attack_interval", 150);
         this.minAttackCount = config.getInt("settings.sensitivity.min_attack_count", 5);
+        this.maxStdDeviation = config.getDouble("settings.sensitivity.max_std_deviation", 50.0);
+        this.tolerancePercentage = config.getDouble("settings.sensitivity.tolerance_percentage", 0.80);
         this.warnPlayer = config.getBoolean("settings.actions.warn_player", true);
         this.kickPlayer = config.getBoolean("settings.actions.kick_player", false);
         this.isEnabled = config.getBoolean("settings.enabled", true);
@@ -75,7 +77,7 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
         PlayerStats stats = playerStats.get(playerId);
         stats.recordAttack(event.getEntity().getLocation());
 
-        if (stats.isSuspicious(maxAverageAttackInterval, minAttackCount)) {
+        if (stats.isSuspicious(maxAverageAttackInterval, minAttackCount, maxStdDeviation, tolerancePercentage)) {
             if (warnPlayer) {
                 warnPlayer(player);
             }
@@ -110,6 +112,8 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
         private long lastAttackTime;
         private long totalInteractionInterval;
         private long totalAttackInterval;
+        private List<Long> attackIntervals = new ArrayList<>();
+        private org.bukkit.Location lastMovementLocation;
 
         public void recordInteraction() {
             long currentTime = System.currentTimeMillis();
@@ -123,20 +127,38 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
         public void recordAttack(org.bukkit.Location attackLocation) {
             long currentTime = System.currentTimeMillis();
             if (lastAttackTime != 0) {
-                totalAttackInterval += (currentTime - lastAttackTime);
+                long interval = currentTime - lastAttackTime;
+                attackIntervals.add(interval);
+                totalAttackInterval += interval;
             }
             lastAttackTime = currentTime;
             attackCount++;
         }
 
         public void recordMovement(org.bukkit.Location newLocation) {
-            // Movement logic can be used to further analyze suspicious activity
+            // Update player's last movement location for context-based analysis
+            lastMovementLocation = newLocation;
         }
 
-        public boolean isSuspicious(int maxInterval, int minCount) {
+        public boolean isSuspicious(int maxInterval, int minCount, double maxStdDeviation, double tolerancePercentage) {
             if (attackCount >= minCount) {
                 long averageAttackInterval = totalAttackInterval / attackCount;
-                return averageAttackInterval < maxInterval;
+
+                // Calculate standard deviation to identify if the clicks are consistent or random
+                double variance = 0.0;
+                for (long interval : attackIntervals) {
+                    variance += Math.pow(interval - averageAttackInterval, 2);
+                }
+                variance /= attackIntervals.size();
+                double stdDeviation = Math.sqrt(variance);
+
+                // If the average interval is below the threshold and the consistency is high, it's suspicious
+                if (averageAttackInterval < maxInterval && stdDeviation < maxStdDeviation) {
+                    // Allow some tolerance percentage for occasional fast clicks
+                    int consistentFastClicks = (int) attackIntervals.stream().filter(i -> i < maxInterval).count();
+                    double consistencyRate = (double) consistentFastClicks / attackCount;
+                    return consistencyRate > tolerancePercentage;
+                }
             }
             return false;
         }
