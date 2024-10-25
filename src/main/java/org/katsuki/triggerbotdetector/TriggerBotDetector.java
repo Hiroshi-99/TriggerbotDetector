@@ -2,6 +2,9 @@
 package org.katsuki.triggerbotdetector;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,12 +26,17 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
     private boolean warnPlayer;
     private boolean kickPlayer;
     private boolean isEnabled;
+    private String warningMessage;
+    private String kickMessage;
 
     @Override
     public void onEnable() {
         // Load configuration
         saveDefaultConfig();
         loadConfiguration();
+
+        // Print a beautiful startup message
+        sendStartupMessage();
 
         if (isEnabled) {
             Bukkit.getServer().getPluginManager().registerEvents(this, this);
@@ -47,11 +55,51 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
         this.warnPlayer = config.getBoolean("settings.actions.warn_player", true);
         this.kickPlayer = config.getBoolean("settings.actions.kick_player", false);
         this.isEnabled = config.getBoolean("settings.enabled", true);
+        this.warningMessage = ChatColor.translateAlternateColorCodes('&', config.getString("messages.warning", "&c[TriggerBotDetector] Unusual attack patterns detected! Please play fair."));
+        this.kickMessage = ChatColor.translateAlternateColorCodes('&', config.getString("messages.kick", "&c[TriggerBotDetector] You have been kicked for suspicious activity."));
     }
 
     @Override
     public void onDisable() {
         getLogger().info("TriggerBotDetector has been disabled.");
+    }
+
+    // Method to send a beautiful startup message to the console
+    private void sendStartupMessage() {
+        String[] startupMessage = {
+                ChatColor.DARK_GRAY + "--------------------------------------------",
+                ChatColor.DARK_AQUA + "         TriggerBotDetector Plugin v1.1",
+                ChatColor.DARK_AQUA + "      Developed by Katsuki",
+                ChatColor.DARK_GRAY + "--------------------------------------------",
+                ChatColor.GREEN + "Status: " + (isEnabled ? ChatColor.GOLD + "Enabled" : ChatColor.RED + "Disabled"),
+                ChatColor.DARK_GRAY + "--------------------------------------------"
+        };
+
+        for (String line : startupMessage) {
+            getServer().getConsoleSender().sendMessage(line);
+        }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("triggerbot")) {
+            if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+                if (!sender.hasPermission("triggerbot.reload")) {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                    return true;
+                }
+
+                // Reload the configuration
+                reloadConfig();
+                loadConfiguration();
+                sender.sendMessage(ChatColor.GREEN + "TriggerBotDetector configuration reloaded successfully.");
+                return true;
+            }
+
+            sender.sendMessage(ChatColor.RED + "Invalid usage. Try /triggerbot reload.");
+            return true;
+        }
+        return false;
     }
 
     @EventHandler
@@ -82,8 +130,7 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
                 warnPlayer(player);
             }
             if (kickPlayer) {
-                player.kickPlayer("You have been kicked for suspicious activity.");
-                getLogger().warning(player.getName() + " has been kicked for using a suspected trigger bot.");
+                kickPlayer(player);
             }
             getLogger().warning(player.getName() + " might be using a trigger bot!");
         }
@@ -102,7 +149,12 @@ public class TriggerBotDetector extends JavaPlugin implements Listener {
     }
 
     private void warnPlayer(Player player) {
-        player.sendMessage("§cWarning: Unusual attack patterns detected! Play fair.");
+        player.sendMessage(warningMessage);
+    }
+
+    private void kickPlayer(Player player) {
+        player.kickPlayer(kickMessage);
+        getLogger().warning(player.getName() + " has been kicked for using a suspected trigger bot.");
     }
 
     private static class PlayerStats {

@@ -1,7 +1,12 @@
 # File: src/main/resources/plugin.yml
 name: TriggerBotDetector
 main: org.katsuki.triggerbotdetector.TriggerBotDetector
-version: 1.0
+version: 1.1-SNAPSHOT
+api-version: 1.20
 description: A plugin to detect trigger bot hacks in Minecraft.
 author: Katsuki
-commands: []
+
+commands:
+  triggerbotdetector:
+    description: Detect players using trigger bots
+    usage: /triggerbotdetector
