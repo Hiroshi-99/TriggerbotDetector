@@ -7,6 +7,19 @@ description: A plugin to detect trigger bot hacks in Minecraft.
 author: Katsuki
 
 commands:
-  triggerbotdetector:
-    description: Detect players using trigger bots
-    usage: /triggerbotdetector
+  triggerbot:
+    description: Command for managing the TriggerBotDetector plugin.
+    usage: /triggerbot reload | /triggerbot gui
+    permission: triggerbot.admin
+    permission-message: You do not have permission to use this command.
+
+permissions:
+  triggerbot.admin:
+    description: Allows admin access to TriggerBotDetector commands and features.
+    default: op
+  triggerbot.reload:
+    description: Allows reloading of the plugin configuration.
+    default: op
+  triggerbot.gui:
+    description: Allows access to the in-game GUI for managing suspicious players.
+    default: op

@@ -1,0 +1,8 @@
+messages:
+  warning: "&c[TriggerBotDetector] Unusual attack patterns detected! Please play fair."
+  kick: "&c[TriggerBotDetector] You have been kicked for suspicious activity."
+  gui_title: "&aSuspicious Players"
+  mute_expired: "&aYour mute has expired."
+  restriction_expired: "&aYour restriction has expired."
+  mute_message: "&cYou have been muted for {duration} seconds."
+  restrict_message: "&cYou have been restricted for {duration} seconds."

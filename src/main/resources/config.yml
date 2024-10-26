@@ -1,11 +1,22 @@
-#Made with <3
 settings:
+  language: "en"  # Default language file (messages_en.yml)
+
   sensitivity:
-    max_average_attack_interval: 150  # Maximum allowed average interval between attacks in milliseconds
-    min_attack_count: 5  # Minimum number of attacks before suspicion detection starts
-    max_std_deviation: 50.0  # Maximum allowed standard deviation of attack intervals
-    tolerance_percentage: 0.80  # Tolerance for consistently fast clicks (e.g., 80%)
+    default:
+      max_average_attack_interval: 150
+      min_attack_count: 5
+      max_std_deviation: 50.0
+      tolerance_percentage: 0.80
+
+    vip:
+      max_average_attack_interval: 200
+      min_attack_count: 10
+      max_std_deviation: 60.0
+      tolerance_percentage: 0.90
+
   actions:
-    warn_player: true  # Whether to warn the player if suspicious
-    kick_player: false  # Whether to kick the player if suspicious
-  enabled: true  # Whether the plugin should be active
+    warn_player: true
+    kick_player: false
+
+  enabled: true
+
